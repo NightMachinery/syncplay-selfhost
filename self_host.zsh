@@ -246,8 +246,8 @@ redeploy() {
 }
 
 dev_start() {
-  # Syncplay has no web build or hot-reload path here; editable install plus restart is the simplest dev mode.
-  redeploy
+  print -u2 "dev-start is not applicable for this project: Syncplay server has no hot-reload/dev server path here. Use ./self_host.zsh redeploy after changes."
+  exit 64
 }
 
 cmd="${1:-}"

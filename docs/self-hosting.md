@@ -33,7 +33,15 @@ The script:
 ./self_host.zsh redeploy [url]   # refresh local runtime/config and restart
 ./self_host.zsh start [url]      # stop any old session and start
 ./self_host.zsh stop             # stop tmux session
-./self_host.zsh dev-start [url]  # simple source-tree restart for development
+./self_host.zsh dev-start [url]  # unsupported; exits with an explanation
+```
+
+## Development mode
+
+`dev-start` is intentionally unsupported for this repo. The deployed component is the upstream Python Syncplay raw TCP server, and this setup does not have a meaningful hot-reload/dev-server mode. After local changes, use:
+
+```zsh
+./self_host.zsh redeploy [url]
 ```
 
 ## Configuration

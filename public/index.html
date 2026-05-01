@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Syncplay self-host</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 48rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
+    code, input { font: inherit; }
+    input { width: min(100%, 32rem); padding: .55rem; }
+    button { padding: .6rem .8rem; cursor: pointer; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  </style>
+</head>
+<body>
+  <h1>Syncplay server</h1>
+  <p>Use the native Syncplay client and connect to:</p>
+  <div class="row">
+    <input id="server" readonly value="syncplay.pinky.lilf.ir:8999">
+    <button type="button" onclick="copyServer()">Copy</button>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p>This page is static and works over plain HTTP for intranet use. The Syncplay protocol itself is raw TCP, not HTTP/WebSocket, so Caddy only serves this landing page.</p>
+<script>
+async function copyServer() {
+  const value = document.getElementById('server').value;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(value);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = value;
+      el.style.position = 'fixed';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.focus(); el.select();
+      document.execCommand('copy');
+      el.remove();
+    }
+    document.getElementById('status').textContent = 'Copied.';
+  } catch (e) {
+    document.getElementById('status').textContent = 'Copy failed; select and copy manually.';
+  }
+}
+</script>
+</body>
+</html>

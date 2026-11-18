@@ -1,1 +1,9 @@
-Remember to allow port 8999 in firewall.
+#+TITLE: Syncplay self-host
+
+Run a Syncplay server and serve a page with its address, SyncPlayU desktop installation instructions, and the Synkplay Android APK.
+
+#+begin_src zsh
+./self_host.zsh setup
+#+end_src
+
+Allow the configured TCP port (8999 by default) through the firewall. See [[file:docs/self-hosting.md][the self-hosting guide]] for deployment and page updates.

@@ -3,46 +3,81 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Syncplay self-host</title>
+  <title>Syncplay · Connect and download</title>
   <style>
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { max-width: 48rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
-    code, input { font: inherit; }
-    input { width: min(100%, 32rem); padding: .55rem; }
-    button { padding: .6rem .8rem; cursor: pointer; }
-    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    :root { color-scheme: light dark; font: 100%/1.55 system-ui, sans-serif; }
+    body { max-width: 44rem; margin: clamp(1.5rem, 6vw, 4rem) auto; padding: 0 1.25rem; }
+    h1, h2, h3 { line-height: 1.2; }
+    h2 { margin: 2rem 0 .5rem; }
+    .app-heading { display: flex; align-items: center; gap: .65rem; }
+    .app-heading img { width: 3rem; height: 3rem; }
+    h3 { margin-bottom: 0; }
+    p { margin: .6rem 0; }
+    .address { display: flex; flex-wrap: wrap; gap: .5rem; }
+    input, button { padding: .55rem .8rem; font: inherit; }
+    input { min-width: 0; flex: 1 1 14rem; }
+    button { cursor: pointer; }
+    pre { overflow-x: auto; border-inline-start: 3px solid #658fc0; padding: .5rem .75rem; }
+    a { text-underline-offset: .15em; }
+    #status { min-height: 1.5em; }
   </style>
 </head>
 <body>
-  <h1>Syncplay server</h1>
-  <p>Use the native Syncplay client and connect to:</p>
-  <div class="row">
+<main>
+  <h1>Watch together with Syncplay</h1>
+  <label for="server">Server address</label>
+  <div class="address">
     <input id="server" readonly value="syncplay.pinky.lilf.ir:8999">
-    <button type="button" onclick="copyServer()">Copy</button>
+    <button type="button" id="copy">Copy address</button>
   </div>
   <p id="status" aria-live="polite"></p>
-  <p>This page is static and works over plain HTTP for intranet use. The Syncplay protocol itself is raw TCP, not HTTP/WebSocket, so Caddy only serves this landing page.</p>
+  <p>Paste the address into your client, then enter the same room name as the other viewers.</p>
+
+  <h2 class="app-heading"><img src="syncplayu.png?v=27779da572b0" alt="" width="48" height="48">Desktop · SyncPlayU</h2>
+  <p>SyncPlayU is the Night build of Syncplay. It automatically rejoins your room after a network drop.</p>
+  <p><a href="https://github.com/NightMachinery/syncplay/releases/latest">Download the latest SyncPlayU desktop release</a></p>
+
+  <h3>Install on macOS with Homebrew</h3>
+  <p>If you installed the original Syncplay cask, quit Syncplay and remove that cask first. This keeps your settings.</p>
+  <pre><code>brew uninstall --cask syncplay</code></pre>
+  <p>Install SyncPlayU:</p>
+  <pre><code>brew install --cask NightMachinery/tap/syncplayu</code></pre>
+  <p>For a bug report, copy both the upstream version and the Night version from About.</p>
+
+  <h2>Android · Synkplay</h2>
+  <p><a id="apk" href="https://github.com/yuroyami/syncplay-mobile/releases/download/v0.26.0/synkplay-0.26.0-full-universal.apk">Download full universal APK (v0.26.0)</a> · <a href="https://github.com/yuroyami/syncplay-mobile/releases/latest">Latest Android release</a></p>
+</main>
 <script>
-async function copyServer() {
-  const value = document.getElementById('server').value;
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(value);
-    } else {
-      const el = document.createElement('textarea');
-      el.value = value;
-      el.style.position = 'fixed';
-      el.style.left = '-9999px';
-      document.body.appendChild(el);
-      el.focus(); el.select();
-      document.execCommand('copy');
-      el.remove();
-    }
-    document.getElementById('status').textContent = 'Copied.';
-  } catch (e) {
-    document.getElementById('status').textContent = 'Copy failed; select and copy manually.';
+  const address = document.getElementById('server');
+  document.getElementById('copy').addEventListener('click', async () => {
+    let copied = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(address.value);
+        copied = true;
+      } else {
+        address.select();
+        copied = document.execCommand('copy');
+      }
+    } catch {}
+    document.getElementById('status').textContent = copied ? 'Copied.' : 'Select and copy the address manually.';
+  });
+
+  // GitHub includes the version in the Android asset name. Keep the verified
+  // direct link above usable when the release API is unavailable.
+  async function updateApkLink() {
+    const response = await fetch('https://api.github.com/repos/yuroyami/syncplay-mobile/releases/latest');
+    if (!response.ok) return;
+    const release = await response.json();
+    const asset = release.assets.find(item => /-full-universal\.apk$/i.test(item.name));
+    if (!asset) return;
+    const url = new URL(asset.browser_download_url);
+    if (url.origin !== 'https://github.com' || !url.pathname.startsWith('/yuroyami/syncplay-mobile/releases/download/')) return;
+    const link = document.getElementById('apk');
+    link.href = url.href;
+    link.textContent = 'Download full universal APK (' + release.tag_name + ')';
   }
-}
+  updateApkLink().catch(() => {});
 </script>
 </body>
 </html>

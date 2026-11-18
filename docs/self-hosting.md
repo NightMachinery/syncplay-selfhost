@@ -2,7 +2,7 @@
 
 This repo self-hosts the upstream [`Syncplay/syncplay`](https://github.com/Syncplay/syncplay) server without Docker.
 
-Syncplay is a native-client service: clients connect to a raw TCP server (default port `8999`). Caddy cannot serve or reverse-proxy that raw protocol with a normal HTTP Caddyfile, so Caddy is used only for a small static landing page with the server address.
+Syncplay is a native-client service: clients connect to a raw TCP server (default port `8999`). Caddy cannot serve or reverse-proxy that raw protocol with a normal HTTP Caddyfile, so Caddy is used only for a static landing page with the server address and client downloads.
 
 ## Quick start
 
@@ -93,3 +93,9 @@ Make sure TCP port `8999` (or your `SYNCPLAY_PORT`) is reachable on the server/f
 - No external captcha or hosted assets are used.
 - The landing page has no external fonts/scripts and works over plain HTTP.
 - Copy-to-clipboard on HTTP uses a local fallback instead of requiring HTTPS-only clipboard APIs.
+
+## Download page
+
+Edit `site/index.html` and run `./self_host.zsh render-site [url]` to regenerate the served page. Use the same URL and `SYNCPLAY_PORT` as the installation. This command works while viewers are connected.
+
+The desktop link follows the fork's latest GitHub release. Homebrew installs the SyncPlayU cask from the NightMachinery tap. The Android link selects the full universal APK from the latest upstream release. An explicitly versioned direct link and the upstream releases page remain usable if the browser cannot reach the GitHub API. Downloading an installer requires access to GitHub.

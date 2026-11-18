@@ -26,7 +26,7 @@ tmuxnew () {
 
 usage() {
   cat <<USAGE
-Usage: ./self_host.zsh [setup|redeploy|start|stop|dev-start] [url]
+Usage: ./self_host.zsh [setup|redeploy|start|stop|dev-start|render-site] [url]
 
 Environment:
   SYNCPLAY_URL       Public landing-page URL (default: $DEFAULT_URL)
@@ -117,56 +117,29 @@ print(''.join(secrets.choice(alphabet) for _ in range(32)))
 PY
     chmod 600 "$SALT_FILE"
   fi
-  cat > "$PUBLIC_DIR/index.html" <<HTML
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Syncplay self-host</title>
-  <style>
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { max-width: 48rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
-    code, input { font: inherit; }
-    input { width: min(100%, 32rem); padding: .55rem; }
-    button { padding: .6rem .8rem; cursor: pointer; }
-    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
-  </style>
-</head>
-<body>
-  <h1>Syncplay server</h1>
-  <p>Use the native Syncplay client and connect to:</p>
-  <div class="row">
-    <input id="server" readonly value="$(host_from_url "$SYNCPLAY_URL"):$SYNCPLAY_PORT">
-    <button type="button" onclick="copyServer()">Copy</button>
-  </div>
-  <p id="status" aria-live="polite"></p>
-  <p>This page is static and works over plain HTTP for intranet use. The Syncplay protocol itself is raw TCP, not HTTP/WebSocket, so Caddy only serves this landing page.</p>
-<script>
-async function copyServer() {
-  const value = document.getElementById('server').value;
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(value);
-    } else {
-      const el = document.createElement('textarea');
-      el.value = value;
-      el.style.position = 'fixed';
-      el.style.left = '-9999px';
-      document.body.appendChild(el);
-      el.focus(); el.select();
-      document.execCommand('copy');
-      el.remove();
-    }
-    document.getElementById('status').textContent = 'Copied.';
-  } catch (e) {
-    document.getElementById('status').textContent = 'Copy failed; select and copy manually.';
-  }
+  render_site
 }
-</script>
-</body>
-</html>
-HTML
+
+render_site() {
+  mkdir -p "${PUBLIC_DIR}"
+  "${PYTHON_BIN}" - "${ROOT_DIR}/site/index.html" "${PUBLIC_DIR}/index.html" "$(host_from_url "${SYNCPLAY_URL}"):${SYNCPLAY_PORT}" <<'PYTHON'
+import hashlib
+import html
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+template, destination, address = sys.argv[1:]
+icon = Path(destination).with_name("syncplayu.png")
+icon_hash = hashlib.sha256(icon.read_bytes()).hexdigest()[:12]
+page = Path(template).read_text().replace("@SERVER_ADDRESS@", html.escape(address, quote=True))
+page = page.replace("@ICON_HASH@", icon_hash)
+with tempfile.NamedTemporaryFile(mode="w", dir=Path(destination).parent, delete=False) as output:
+    output.write(page)
+os.chmod(output.name, 0o644)
+os.replace(output.name, destination)
+PYTHON
 }
 
 write_caddyfile() {
@@ -252,6 +225,7 @@ dev_start() {
 
 cmd="${1:-}"
 case "$cmd" in
+  render-site) render_site ;;
   setup) setup ;;
   redeploy) redeploy ;;
   start) require_cmds; [[ -f "$SRC_DIR/syncplayServer.py" && -x "$VENV_DIR/bin/python" ]] || { print -u2 "Run setup first."; exit 1; }; write_runtime_files; start_server ;;

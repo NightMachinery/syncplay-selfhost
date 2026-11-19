@@ -7,6 +7,10 @@ DEFAULT_URL="http://${APP_NAME}.pinky.lilf.ir"
 ROOT_DIR="${0:A:h}"
 UPSTREAM_REPO="https://github.com/Syncplay/syncplay.git"
 SRC_DIR="$ROOT_DIR/.runtime/syncplay"
+NIGHT_REPO="https://github.com/NightMachinery/syncplay.git"
+RELEASE_DIR="$ROOT_DIR/.runtime/releases"
+SERVER_RELEASE_FILE="$ROOT_DIR/data/server-release"
+SERVER_RELEASE=""
 VENV_DIR="$ROOT_DIR/.runtime/venv"
 PUBLIC_DIR="$ROOT_DIR/public"
 DATA_DIR="$ROOT_DIR/data"
@@ -27,6 +31,7 @@ tmuxnew () {
 usage() {
   cat <<USAGE
 Usage: ./self_host.zsh [setup|redeploy|start|stop|dev-start|render-site] [url]
+       ./self_host.zsh prepare-release <tag>
 
 Environment:
   SYNCPLAY_URL       Public landing-page URL (default: $DEFAULT_URL)
@@ -85,7 +90,49 @@ assert_port_free() {
   fi
 }
 
+validate_release() {
+  local tag="${1-}"
+  if [[ -z "${tag}" || "${tag}" != [[:alnum:]]* || "${tag}" == *[^[:alnum:]._-]* ]] ||
+     ! command git check-ref-format "refs/tags/${tag}" >/dev/null; then
+    print -u2 "Expected a release tag such as v1.7.7-night.3"
+    return 1
+  fi
+}
+
+prepare_release() {
+  local tag="${1-}"
+  validate_release "${tag}" || return 1
+  local dest="${RELEASE_DIR}/${tag}"
+  if [[ -d "${dest}" ]]; then
+    [[ -f "${dest}/syncplayServer.py" ]] || { print -u2 "Incomplete release checkout: ${dest}"; return 1; }
+    return 0
+  fi
+  command mkdir -p "${RELEASE_DIR}"
+  local tmp
+  tmp="$(command mktemp -d "${RELEASE_DIR}/.stage.XXXXXXXX")"
+  if command git -C "${tmp}" init -q &&
+     command git -C "${tmp}" fetch --quiet --depth=1 "${NIGHT_REPO}" "refs/tags/${tag}" &&
+     command git -C "${tmp}" checkout --quiet --detach FETCH_HEAD &&
+     [[ -f "${tmp}/syncplayServer.py" ]] &&
+     "${PYTHON_BIN}" -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' "${tmp}" "${dest}"; then
+    return 0
+  fi
+  command rm -rf -- "${tmp}"
+  # A concurrent preparer may already have published the complete checkout.
+  [[ -f "${dest}/syncplayServer.py" ]]
+}
+
+select_server_source() {
+  if [[ -f "${SERVER_RELEASE_FILE}" ]]; then
+    SERVER_RELEASE="$(<"${SERVER_RELEASE_FILE}")"
+    validate_release "${SERVER_RELEASE}" || return 1
+    prepare_release "${SERVER_RELEASE}" || return 1
+    SRC_DIR="${RELEASE_DIR}/${SERVER_RELEASE}"
+  fi
+}
+
 ensure_upstream() {
+  [[ -z "${SERVER_RELEASE}" ]] || return 0
   mkdir -p "$ROOT_DIR/.runtime"
   if [[ -d "$SRC_DIR/.git" ]]; then
     git -C "$SRC_DIR" fetch --depth 1 origin
@@ -224,7 +271,11 @@ dev_start() {
 }
 
 cmd="${1:-}"
+case "${cmd}" in
+  start|setup|redeploy) select_server_source ;;
+esac
 case "$cmd" in
+  prepare-release) prepare_release "${2:-}" ;;
   render-site) render_site ;;
   setup) setup ;;
   redeploy) redeploy ;;

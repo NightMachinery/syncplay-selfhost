@@ -99,3 +99,28 @@ Make sure TCP port `8999` (or your `SYNCPLAY_PORT`) is reachable on the server/f
 Edit `site/index.html` and run `./self_host.zsh render-site [url]` to regenerate the served page. Use the same URL and `SYNCPLAY_PORT` as the installation. This command works while viewers are connected.
 
 The desktop link follows the fork's latest GitHub release. Homebrew installs the SyncPlayU cask from the NightMachinery tap. The Android link selects the full universal APK from the latest upstream release. An explicitly versioned direct link and the upstream releases page remain usable if the browser cannot reach the GitHub API. Downloading an installer requires access to GitHub.
+
+## Selecting a SyncPlayU server release
+
+The default installation follows upstream Syncplay. To serve a room feature provided by the fork, prepare the corresponding published SyncPlayU tag first. Preparing the checkout leaves the running service and its databases in place.
+
+```zsh
+tag=v1.7.7-night.3
+./self_host.zsh prepare-release "${tag}"
+```
+
+When ready to switch, write the selector and restart the server using the existing URL, port, environment and virtual environment. Run this from the hosting repository. For a fresh installation use `setup` in place of `start`.
+
+```zsh
+mkdir -p data
+printf '%s\n' "${tag}" > data/server-release.next
+mv data/server-release.next data/server-release
+./self_host.zsh start
+```
+
+Subsequent starts and deployments use that exact release. On an existing upstream installation, return to the original checkout with the following commands. The service keeps its data directory throughout.
+
+```zsh
+mv data/server-release data/server-release.disabled
+./self_host.zsh start
+```

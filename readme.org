@@ -1,6 +1,6 @@
 #+TITLE: Syncplay self-host
 
-Run a Syncplay server and serve a page with its address, SyncPlayU desktop installation instructions, and the Synkplay Android APK.
+Run a Syncplay server and serve a page with its address, SyncPlayU desktop installation instructions, and the SyncPlayU Android APK.
 
 #+begin_src zsh
 ./self_host.zsh setup

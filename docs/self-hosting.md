@@ -98,7 +98,7 @@ Make sure TCP port `8999` (or your `SYNCPLAY_PORT`) is reachable on the server/f
 
 Edit `site/index.html` and run `./self_host.zsh render-site [url]` to regenerate the served page. Use the same URL and `SYNCPLAY_PORT` as the installation. This command works while viewers are connected.
 
-The desktop link follows the fork's latest GitHub release. Homebrew installs the SyncPlayU cask from the NightMachinery tap. The Android link selects the full universal APK from the latest upstream release. An explicitly versioned direct link and the upstream releases page remain usable if the browser cannot reach the GitHub API. Downloading an installer requires access to GitHub.
+The desktop link follows the fork's latest GitHub release. Homebrew installs the SyncPlayU cask from the NightMachinery tap. The Android link points to the latest full SyncPlayU APK from the Android fork. Both release links use stable asset filenames. Downloading an installer requires access to GitHub.
 
 ## Selecting a SyncPlayU server release
 

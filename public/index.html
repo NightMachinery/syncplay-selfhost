@@ -36,7 +36,7 @@
   <h2 class="app-heading"><img src="syncplayu.png?v=27779da572b0" alt="" width="48" height="48">Desktop · SyncPlayU</h2>
   <p>SyncPlayU is the Night build of Syncplay. It automatically rejoins your room after a network drop.</p>
   <p><a href="https://github.com/NightMachinery/syncplay/releases/latest/download/SyncPlayU-macOS.dmg">Download SyncPlayU for macOS</a> · <a href="https://github.com/NightMachinery/syncplay/releases/latest">Latest desktop release and source</a></p>
-  <p>Apple Silicon · macOS Sonoma (14) or later. This build is ad-hoc signed and unnotarized. If macOS asks for approval, follow <a href="https://support.apple.com/en-us/102445">Apple’s first-launch instructions</a>.</p>
+  <p>Apple Silicon · macOS Sonoma (14) or later. This build is ad-hoc signed and unnotarized.</p>
 
   <h3>Install on macOS with Homebrew</h3>
   <p>If you installed the original Syncplay cask, quit Syncplay and remove that cask first. This keeps your settings.</p>
@@ -44,6 +44,10 @@
   <p>Install SyncPlayU:</p>
   <pre><code>brew install --cask NightMachinery/tap/syncplayu</code></pre>
   <p>Already using SyncPlayU? Run <code>brew update</code>, then <code>brew upgrade --cask syncplayu</code>. About shows both the upstream and Night versions.</p>
+  <h3>If macOS blocks SyncPlayU</h3>
+  <p>After installing or upgrading, try opening SyncPlayU, then choose <strong>Open Anyway</strong> in <strong>System Settings → Privacy &amp; Security</strong>. <a href="https://support.apple.com/en-us/102445">Apple’s first-launch instructions</a>.</p>
+  <p>If macOS still blocks the copy you installed from the download above or the Homebrew tap, remove its quarantine attribute in Terminal, then open it again. Adjust the path if the app is outside Applications.</p>
+  <pre><code>xattr -d com.apple.quarantine /Applications/SyncPlayU.app</code></pre>
   <h3>Share mpv playback speed</h3>
   <p>With SyncPlayU Night 3 or later, use mpv’s normal speed controls to set the room rate from 0.25× to 4×. Press <kbd>Backspace</kbd> to reset to 1×. In a managed room, a room operator controls the speed.</p>
   <p>The server and every viewer in the room must support shared speed. If a viewer joins with an older client or an unsupported player, the room returns to 1×. Everyone can still pause, seek, and watch together.</p>
